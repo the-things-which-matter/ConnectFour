@@ -1,36 +1,56 @@
+@using ConnectFour
+@inject ConnectFour.GameState State
 @rendermode InteractiveServer
+
 <h1>Connect Four</h1>
 
 <p>Players take turns dropping their pieces into a column.</p>
+
 <p>Get four pieces in a row horizontally, vertically, or diagonally to win.</p>
 
-<div style="background-color: yellow; width: 30em; padding: 10px; display: flex; flex-wrap: wrap;">
+<nav>
+    @for (byte i = 0; i < 7; i++)
+    {
+        var col = i;
+
+        <span class="drop-button"
+              title="Click to play a piece"
+              @onclick="() => PlayPiece(col)">
+            🔽
+        </span>
+    }
+</nav>
+
+<div class="board">
+
     @for (var i = 0; i < 42; i++)
     {
-        var column = i % 7;
-
-        <div @onclick="() => DropPiece(column)"
-             style="width: 4em; height: 4em; display: flex; align-items: center; justify-content: center; cursor: pointer;">
-
+        <div class="cell">
             <div style="@GetPieceStyle(i)">
             </div>
-
         </div>
     }
+
 </div>
 
-@if (gameOver)
-{
-    <h3>@winnerMessage</h3>
+<article>
+    @winnerMessage
 
-    <button @onclick="RestartGame">
-        Restart Game
+    <button style="@ResetStyle" @onclick="ResetGame">
+        Reset the game
     </button>
-}
+
+    <br />
+
+    <span class="alert-danger">@errorMessage</span>
+
+    <span class="alert-info">@CurrentTurn</span>
+</article>
 
 @if (moveHistory.Count > 0)
 {
     <div style="margin-top: 20px;">
+
         <h3>Move History</h3>
 
         <ol>
@@ -39,120 +59,58 @@
                 <li>@move</li>
             }
         </ol>
+
     </div>
 }
 
 @code {
-    private int[] board = new int[42];
-    private int currentPlayer = 1;
-
-    private bool gameOver = false;
-    private string winnerMessage = "";
+    private string winnerMessage = string.Empty;
+    private string errorMessage = string.Empty;
 
     private List<string> moveHistory = new();
 
-    private void DropPiece(int column)
+    private string CurrentTurn => (winnerMessage == string.Empty)
+        ? $"Player {State.PlayerTurn}'s Turn"
+        : "";
+
+    private string ResetStyle => (winnerMessage == string.Empty)
+        ? "display: none;"
+        : "";
+
+    protected override void OnInitialized()
     {
-        // Don't allow moves after someone has won.
-        if (gameOver)
-        {
-            return;
-        }
+        State.ResetBoard();
+    }
 
-        // Start at the bottom row and work upward.
-        for (int row = 5; row >= 0; row--)
-        {
-            int index = row * 7 + column;
+    private void PlayPiece(byte col)
+    {
+        errorMessage = string.Empty;
 
-            if (board[index] == 0)
+        try
+        {
+            var player = State.PlayerTurn;
+
+            State.PlayPiece(col);
+
+            moveHistory.Add($"Player {player} → Column {col + 1}");
+
+            winnerMessage = State.CheckForWin() switch
             {
-                board[index] = currentPlayer;
-
-                // Add this move to the move history.
-                moveHistory.Add($"Player {currentPlayer} → Column {column + 1}");
-
-                // Check whether this move created four in a row.
-                if (CheckWinner(row, column))
-                {
-                    gameOver = true;
-                    winnerMessage = $"Player {currentPlayer} wins!";
-                }
-                else
-                {
-                    // Switch players.
-                    currentPlayer = currentPlayer == 1 ? 2 : 1;
-                }
-
-                return;
-            }
+                GameState.WinState.Player1_Wins => "Player 1 Wins!",
+                GameState.WinState.Player2_Wins => "Player 2 Wins!",
+                GameState.WinState.Tie => "It's a tie!",
+                _ => ""
+            };
         }
-
-        // If the column is full, do nothing.
-    }
-
-    private bool CheckWinner(int row, int column)
-    {
-        int player = board[row * 7 + column];
-
-        // Horizontal
-        if (CountPieces(row, column, 0, 1, player) +
-            CountPieces(row, column, 0, -1, player) - 1 >= 4)
+        catch (ArgumentException ex)
         {
-            return true;
+            errorMessage = ex.Message;
         }
-
-        // Vertical
-        if (CountPieces(row, column, 1, 0, player) +
-            CountPieces(row, column, -1, 0, player) - 1 >= 4)
-        {
-            return true;
-        }
-
-        // Diagonal: top-left to bottom-right
-        if (CountPieces(row, column, 1, 1, player) +
-            CountPieces(row, column, -1, -1, player) - 1 >= 4)
-        {
-            return true;
-        }
-
-        // Diagonal: bottom-left to top-right
-        if (CountPieces(row, column, 1, -1, player) +
-            CountPieces(row, column, -1, 1, player) - 1 >= 4)
-        {
-            return true;
-        }
-
-        return false;
-    }
-
-    private int CountPieces(
-        int row,
-        int column,
-        int rowDirection,
-        int columnDirection,
-        int player)
-    {
-        int count = 0;
-
-        while (
-            row >= 0 &&
-            row < 6 &&
-            column >= 0 &&
-            column < 7 &&
-            board[row * 7 + column] == player)
-        {
-            count++;
-
-            row += rowDirection;
-            column += columnDirection;
-        }
-
-        return count;
     }
 
     private string GetPieceStyle(int index)
     {
-        string color = board[index] switch
+        string color = State.TheBoard[index] switch
         {
             1 => "red",
             2 => "blue",
@@ -162,12 +120,11 @@
         return $"width: 3em; height: 3em; border-radius: 50%; background-color: {color};";
     }
 
-    private void RestartGame()
+    private void ResetGame()
     {
-        board = new int[42];
-        currentPlayer = 1;
-        gameOver = false;
-        winnerMessage = "";
+        State.ResetBoard();
+        winnerMessage = string.Empty;
+        errorMessage = string.Empty;
         moveHistory.Clear();
     }
 }
