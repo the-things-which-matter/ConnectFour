@@ -1,0 +1,27 @@
+div {
+    position: relative;
+}
+
+div:first-child {
+    width: 30em;
+    padding: 10px;
+    background-color: yellow;
+    display: flex;
+    flex-wrap: wrap;
+    box-sizing: border-box;
+}
+
+div:first-child > div {
+    width: 4em;
+    height: 4em;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+div:first-child > div > div {
+    width: 3em;
+    height: 3em;
+    border-radius: 50%;
+}
