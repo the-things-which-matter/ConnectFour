@@ -17,7 +17,7 @@ nav {
 .board {
     width: 30em;
     padding: 10px;
-    background-color: yellow;
+    background-color: var(--board-bg);
     display: flex;
     flex-wrap: wrap;
     box-sizing: border-box;

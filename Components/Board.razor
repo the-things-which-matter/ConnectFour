@@ -1,6 +1,18 @@
 @using ConnectFour
+@using System.Drawing
+
 @inject ConnectFour.GameState State
-@rendermode InteractiveServer
+
+
+<HeadContent>
+    <style>
+        :root {
+            --board-bg: @ColorTranslator.ToHtml(BoardColor);
+            --player1: @ColorTranslator.ToHtml(Player1Color);
+            --player2: @ColorTranslator.ToHtml(Player2Color);
+        }
+    </style>
+</HeadContent>
 
 <h1>Connect Four</h1>
 
@@ -64,6 +76,15 @@
 }
 
 @code {
+    [Parameter]
+    public Color BoardColor { get; set; } = ColorTranslator.FromHtml("yellow");
+
+    [Parameter]
+    public Color Player1Color { get; set; } = ColorTranslator.FromHtml("red");
+
+    [Parameter]
+    public Color Player2Color { get; set; } = ColorTranslator.FromHtml("blue");
+
     private string winnerMessage = string.Empty;
     private string errorMessage = string.Empty;
 
@@ -112,8 +133,8 @@
     {
         string color = State.TheBoard[index] switch
         {
-            1 => "red",
-            2 => "blue",
+            1 => "var(--player1)",
+            2 => "var(--player2)",
             _ => "white"
         };
 
