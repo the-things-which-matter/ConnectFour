@@ -8,9 +8,9 @@ public class GameState
         CalculateWinningPlaces();
     }
 
-    /// <summary>
+    
     /// Indicate whether a player has won, the game is a tie, or game in ongoing
-    /// </summary>
+    
     public enum WinState
     {
         No_Winner = 0,
@@ -19,14 +19,13 @@ public class GameState
         Tie = 3
     }
 
-    /// <summary>
+    
     /// The player whose turn it is. By default, player 1 starts first
-    /// </summary>
+    
     public int PlayerTurn => TheBoard.Count(x => x != 0) % 2 + 1;
 
-    /// <summary>
     /// Number of turns completed and pieces played so far in the game
-    /// </summary>
+    
     public int CurrentTurn
     {
         get { return TheBoard.Count(x => x != 0); }
@@ -124,9 +123,9 @@ public class GameState
         }
     }
 
-    /// <summary>
+    
     /// Check the state of the board for a winning scenario
-    /// </summary>
+    
     /// <returns>0 - no winner, 1 - player 1 wins, 2 - player 2 wins, 3 - draw</returns>
     public WinState CheckForWin()
     {
@@ -156,9 +155,9 @@ public class GameState
         return WinState.No_Winner;
     }
 
-    /// <summary>
+    
     /// Takes the current turn and places a piece in the 0-indexed column requested
-    /// </summary>
+    
     /// <param name="column">0-indexed column to place the piece into</param>
     /// <returns>The final array index where the piece resides</returns>
     public byte PlayPiece(int column)
